@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "google-satellite",
+        "name": "Google Satellite (MapProxy WMTS)",
+        "type": "wmts",
+        "url": "http://127.0.0.1:8080/wmts/google_satellite/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "google-hybrid",
+        "name": "Google Hybrid (MapProxy WMTS)",
+        "type": "wmts",
+        "url": "http://127.0.0.1:8080/wmts/google_hybrid/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
+      },
+      "geometry": null
+    }
+  ]
+}

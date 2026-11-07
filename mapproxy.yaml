@@ -1,0 +1,74 @@
+services:
+  demo:
+  wms:
+    srs: ['EPSG:4326', 'EPSG:3857', 'EPSG:900913', 'CRS:84']
+    md:
+      title: "Google Maps Proxy"
+      abstract: "Local MapProxy server providing Google Map layers"
+  wmts:
+    restful: true
+  tms:
+    use_grid_names: true
+
+layers:
+  - name: google_satellite
+    title: "Google Satellite"
+    sources: [cache_google_satellite]
+
+  - name: google_hybrid
+    title: "Google Hybrid"
+    sources: [cache_google_hybrid]
+
+  - name: google_roadmap
+    title: "Google Roadmap"
+    sources: [cache_google_roadmap]
+
+caches:
+  cache_google_satellite:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_google_satellite]
+
+  cache_google_hybrid:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_google_hybrid]
+
+  cache_google_roadmap:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_google_roadmap]
+
+sources:
+  src_google_satellite:
+    type: tile
+    url: https://mt1.google.com/vt/lyrs=s&x=%(x)s&y=%(y)s&z=%(z)s
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 8
+    http:
+      headers:
+        User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/122.0.0.0 Safari/537.36"
+      client_timeout: 5
+
+  src_google_hybrid:
+    type: tile
+    url: https://mt1.google.com/vt/lyrs=y&x=%(x)s&y=%(y)s&z=%(z)s
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 8
+    http:
+      headers:
+        User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/122.0.0.0 Safari/537.36"
+      client_timeout: 5
+
+  src_google_roadmap:
+    type: tile
+    url: https://mt1.google.com/vt/lyrs=m&x=%(x)s&y=%(y)s&z=%(z)s
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 8
+    http:
+      headers:
+        User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/122.0.0.0 Safari/537.36"
+      client_timeout: 5
+
+globals:
+  cache:
+    base_dir: './cache_data'
+  image:
+    resampling: bilinear

@@ -1,0 +1,14 @@
+services:
+  mapproxy:
+    image: kartoza/mapproxy:latest
+    container_name: mapproxy
+    environment:
+      - PROCESSES=8
+      - THREADS=2
+      - CHEAPER=2
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./mapproxy.yaml:/settings/mapproxy.yaml
+      #- ./cache:/var/netgis/cache
+    restart: unless-stopped
