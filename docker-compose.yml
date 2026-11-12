@@ -1,11 +1,30 @@
 services:
+  tileproxy:
+    build: ./tileproxy
+    image: mapproxy-tileproxy
+    container_name: mapproxy-tileproxy
+    environment:
+      - TILE_CACHE=/cache
+    volumes:
+      - ./tilecache:/cache
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
   mapproxy:
     image: kartoza/mapproxy:latest
     container_name: mapproxy
+    depends_on:
+      tileproxy:
+        condition: service_healthy
     environment:
       - PROCESSES=8
       - THREADS=2
       - CHEAPER=2
+      - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN:-}
     ports:
       - "8080:8080"
     volumes:

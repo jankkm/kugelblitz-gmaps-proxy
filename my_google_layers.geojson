@@ -20,6 +20,46 @@
         "url": "http://127.0.0.1:8080/wmts/google_hybrid/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
       },
       "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "esri-satellite",
+        "name": "Esri Satellite (MapProxy WMTS)",
+        "type": "wmts",
+        "url": "http://127.0.0.1:8080/wmts/esri_satellite/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "esri-hybrid",
+        "name": "Esri Hybrid (MapProxy WMTS)",
+        "type": "wmts",
+        "url": "http://127.0.0.1:8080/wmts/esri_hybrid/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "mapbox-satellite",
+        "name": "Mapbox Satellite (MapProxy WMTS)",
+        "type": "wmts",
+        "url": "http://127.0.0.1:8080/wmts/mapbox_satellite/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "mapbox-hybrid",
+        "name": "Mapbox Hybrid (MapProxy WMTS)",
+        "type": "wmts",
+        "url": "http://127.0.0.1:8080/wmts/mapbox_hybrid/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
+      },
+      "geometry": null
     }
   ]
 }

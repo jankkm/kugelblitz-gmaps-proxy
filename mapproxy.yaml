@@ -3,8 +3,8 @@ services:
   wms:
     srs: ['EPSG:4326', 'EPSG:3857', 'EPSG:900913', 'CRS:84']
     md:
-      title: "Google Maps Proxy"
-      abstract: "Local MapProxy server providing Google Map layers"
+      title: "MapProxy"
+      abstract: "Local MapProxy server providing Google, Esri, and Mapbox layers"
   wmts:
     restful: true
   tms:
@@ -23,6 +23,30 @@ layers:
     title: "Google Roadmap"
     sources: [cache_google_roadmap]
 
+  - name: esri_satellite
+    title: "Esri Satellite"
+    sources: [cache_esri_satellite]
+
+  - name: esri_hybrid
+    title: "Esri Hybrid"
+    sources: [cache_esri_hybrid]
+
+  - name: esri_roadmap
+    title: "Esri Roadmap"
+    sources: [cache_esri_roadmap]
+
+  - name: mapbox_satellite
+    title: "Mapbox Satellite"
+    sources: [cache_mapbox_satellite]
+
+  - name: mapbox_hybrid
+    title: "Mapbox Hybrid"
+    sources: [cache_mapbox_hybrid]
+
+  - name: mapbox_roadmap
+    title: "Mapbox Roadmap"
+    sources: [cache_mapbox_roadmap]
+
 caches:
   cache_google_satellite:
     grids: [GLOBAL_WEBMERCATOR]
@@ -36,39 +60,120 @@ caches:
     grids: [GLOBAL_WEBMERCATOR]
     sources: [src_google_roadmap]
 
+  cache_esri_satellite:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_esri_satellite]
+
+  cache_esri_hybrid:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_esri_satellite, src_esri_transportation, src_esri_places]
+
+  cache_esri_roadmap:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_esri_roadmap]
+
+  cache_mapbox_satellite:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_mapbox_satellite]
+
+  cache_mapbox_hybrid:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_mapbox_hybrid]
+
+  cache_mapbox_roadmap:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_mapbox_roadmap]
+
 sources:
   src_google_satellite:
     type: tile
-    url: https://mt1.google.com/vt/lyrs=s&x=%(x)s&y=%(y)s&z=%(z)s
+    url: http://tileproxy:8090/s/%(z)s/%(x)s/%(y)s.jpg
     grid: GLOBAL_WEBMERCATOR
-    concurrent_requests: 8
+    concurrent_requests: 2
+    transparent: true
+    on_error:
+      other:
+        response: transparent
+        cache: false
     http:
-      headers:
-        User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/122.0.0.0 Safari/537.36"
-      client_timeout: 5
+      client_timeout: 20
 
   src_google_hybrid:
     type: tile
-    url: https://mt1.google.com/vt/lyrs=y&x=%(x)s&y=%(y)s&z=%(z)s
+    url: http://tileproxy:8090/y/%(z)s/%(x)s/%(y)s.jpg
     grid: GLOBAL_WEBMERCATOR
-    concurrent_requests: 8
+    concurrent_requests: 2
+    transparent: true
+    on_error:
+      other:
+        response: transparent
+        cache: false
     http:
-      headers:
-        User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/122.0.0.0 Safari/537.36"
-      client_timeout: 5
+      client_timeout: 20
 
   src_google_roadmap:
     type: tile
-    url: https://mt1.google.com/vt/lyrs=m&x=%(x)s&y=%(y)s&z=%(z)s
+    url: http://tileproxy:8090/m/%(z)s/%(x)s/%(y)s.jpg
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 2
+    transparent: true
+    on_error:
+      other:
+        response: transparent
+        cache: false
+    http:
+      client_timeout: 20
+
+  src_esri_satellite:
+    type: tile
+    url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/%(z)s/%(y)s/%(x)s
     grid: GLOBAL_WEBMERCATOR
     concurrent_requests: 8
-    http:
-      headers:
-        User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/122.0.0.0 Safari/537.36"
-      client_timeout: 5
+
+  src_esri_transportation:
+    type: tile
+    url: https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/%(z)s/%(y)s/%(x)s
+    grid: GLOBAL_WEBMERCATOR
+    transparent: true
+    concurrent_requests: 8
+
+  src_esri_places:
+    type: tile
+    url: https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/%(z)s/%(y)s/%(x)s
+    grid: GLOBAL_WEBMERCATOR
+    transparent: true
+    concurrent_requests: 8
+
+  src_esri_roadmap:
+    type: tile
+    url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/%(z)s/%(y)s/%(x)s
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 8
+
+  src_mapbox_satellite:
+    type: tile
+    url: https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/%(z)s/%(x)s/%(y)s?access_token=${MAPBOX_ACCESS_TOKEN}
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 8
+
+  src_mapbox_hybrid:
+    type: tile
+    url: https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/%(z)s/%(x)s/%(y)s?access_token=${MAPBOX_ACCESS_TOKEN}
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 8
+
+  src_mapbox_roadmap:
+    type: tile
+    url: https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/%(z)s/%(x)s/%(y)s?access_token=${MAPBOX_ACCESS_TOKEN}
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 8
 
 globals:
   cache:
     base_dir: './cache_data'
+  http:
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    client_timeout: 5
   image:
     resampling: bilinear
