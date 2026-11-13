@@ -1,0 +1,27 @@
+# Copy to docker-compose.override.yml on the Traefik host, set the hostname,
+# then start with: docker compose up -d
+#
+# entrypoints and certresolver must already exist on that Traefik.
+# MapProxy stays on the project network so it can reach tileproxy.
+# The base file publishes 8080 for local use. Reset that here so the host
+# port stays closed and Traefik is the only way in.
+
+services:
+  mapproxy:
+    ports: !reset []
+    networks:
+      - mapproxy-net
+      - traefik-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-network
+      - traefik.http.routers.mapproxy.rule=Host(`maps.example.com`)
+      - traefik.http.routers.mapproxy.entrypoints=websecure
+      - traefik.http.routers.mapproxy.tls=true
+      - traefik.http.routers.mapproxy.tls.certresolver=letsencrypt
+      - traefik.http.services.mapproxy.loadbalancer.server.port=8080
+
+networks:
+  traefik-network:
+    external: true
+  mapproxy-net:

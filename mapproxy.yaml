@@ -9,6 +9,14 @@ services:
     restful: true
   tms:
     use_grid_names: true
+  ogcapi:
+    enable_tiles: true
+    enable_maps: true
+    map_srs: ['EPSG:4326', 'EPSG:3857']
+    md:
+      identification:
+        title: MapProxy
+        description: Local MapProxy server providing Google, Esri, and Mapbox layers
 
 layers:
   - name: google_satellite

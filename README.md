@@ -26,16 +26,13 @@ To put that data on another disk, set `DATA_DIR` in `.env` to the new location a
 
 ## Use in Kugelblitz
 
-Add `my_google_layers.geojson` as file in Library. That adds:
+Add `http://127.0.0.1:8080/ogcapi` in the Library. That is the OGC API landing page. Kugelblitz lists each layer as a map collection:
 
-- Google Satellite
-- Google Hybrid
-- Esri Satellite
-- Esri Hybrid
-- Mapbox Satellite
-- Mapbox Hybrid
+- Google Satellite, Hybrid, and Roadmap
+- Esri Satellite, Hybrid, and Roadmap
+- Mapbox Satellite, Hybrid, and Roadmap
 
-Roadmap layers for all three are on the demo page.
+`my_google_layers.geojson` still adds the six satellite and hybrid layers as WMTS, if you already have that file in the Library.
 
 Leave the container running while you use the layers.
 
