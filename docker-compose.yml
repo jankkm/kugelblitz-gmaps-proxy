@@ -5,8 +5,10 @@ services:
     container_name: mapproxy-tileproxy
     environment:
       - TILE_CACHE=/cache
+      - TILE_CACHE_MAX_BYTES=${TILE_CACHE_MAX_BYTES:-8GiB}
+      - CACHE_MIN_FREE=${CACHE_MIN_FREE:-1GiB}
     volumes:
-      - ./tilecache:/cache
+      - ${DATA_DIR:-.}/tilecache:/cache
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health')"]
       interval: 5s
@@ -25,9 +27,25 @@ services:
       - THREADS=2
       - CHEAPER=2
       - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN:-}
+      - MAPPROXY_DATA_DIR=/mapproxy
+      - MAPPROXY_CACHE_DIR=/cache_data
     ports:
       - "8080:8080"
     volumes:
       - ./mapproxy.yaml:/settings/mapproxy.yaml
-      #- ./cache:/var/netgis/cache
+      - ${DATA_DIR:-.}/cache:/cache_data
+      - ${DATA_DIR:-.}/mapproxy-data:/mapproxy
+    restart: unless-stopped
+
+  cacheprune:
+    build: ./tileproxy
+    image: mapproxy-tileproxy
+    container_name: mapproxy-cacheprune
+    command: ["python", "-u", "/app/cachelimit.py"]
+    environment:
+      - CACHE_ROOT=/cache
+      - CACHE_MAX_BYTES=${MAPPROXY_CACHE_MAX_BYTES:-8GiB}
+      - CACHE_MIN_FREE=${CACHE_MIN_FREE:-1GiB}
+    volumes:
+      - ${DATA_DIR:-.}/cache:/cache
     restart: unless-stopped

@@ -8,6 +8,7 @@ covered land fails as soon as the view includes a gap. This proxy
 answers the gap with the parent tile cropped to the missing cell.
 """
 
+import errno
 import os
 import threading
 import time
@@ -19,6 +20,8 @@ from urllib.request import Request, urlopen
 
 from PIL import Image
 
+from cachelimit import Limiter, rank_tileproxy, require_bytes
+
 HOSTS = ("mt0", "mt1", "mt2", "mt3")
 LAYERS = {"s", "y", "m"}
 CACHE = Path(os.environ.get("TILE_CACHE", "/cache"))
@@ -27,6 +30,8 @@ UPSTREAM_TIMEOUT = 8
 MAX_ZOOM = 22
 NATIVE_TTL = 30 * 24 * 3600
 UPSCALED_TTL = 12 * 3600
+CACHE_MAX_BYTES = require_bytes("TILE_CACHE_MAX_BYTES", "8GiB")
+CACHE_MIN_FREE = require_bytes("CACHE_MIN_FREE", "1GiB")
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
@@ -35,6 +40,13 @@ UA = (
 upstream_slots = threading.BoundedSemaphore(4)
 locks_guard = threading.Lock()
 tile_locks = {}
+limiter = Limiter(
+    CACHE,
+    CACHE_MAX_BYTES,
+    rank=rank_tileproxy(NATIVE_TTL, UPSCALED_TTL),
+    label="tilecache",
+    min_free=CACHE_MIN_FREE,
+)
 
 
 class Missing(Exception):
@@ -62,20 +74,61 @@ def cache_file(kind, lyrs, z, x, y):
 
 def read_fresh(path, ttl):
     try:
-        age = time.time() - path.stat().st_mtime
+        st = path.stat()
     except FileNotFoundError:
         return None
-    if age > ttl:
+    if time.time() - st.st_mtime > ttl:
         return None
-    data = path.read_bytes()
-    return data or None
+    try:
+        data = path.read_bytes()
+    except FileNotFoundError:
+        return None
+    if not data:
+        return None
+    # Last use is the access time. The modification time stays the write
+    # time so the TTL above does not reset on every hit.
+    try:
+        os.utime(path, ns=(time.time_ns(), st.st_mtime_ns))
+    except OSError:
+        pass
+    return data
 
 
 def write_atomic(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        previous = path.stat().st_size
+    except FileNotFoundError:
+        previous = 0
     tmp = path.with_suffix(path.suffix + f".{os.getpid()}.{threading.get_ident()}.tmp")
-    tmp.write_bytes(data)
-    os.replace(tmp, path)
+    try:
+        tmp.write_bytes(data)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            tmp.unlink()
+        except FileNotFoundError:
+            pass
+        raise
+    return len(data) - previous
+
+
+def store_tile(path, data):
+    for attempt in (1, 2):
+        try:
+            limiter.stored(write_atomic(path, data))
+            return
+        except OSError as exc:
+            if exc.errno != errno.ENOSPC:
+                raise
+            if attempt == 2 or not limiter.manages():
+                print(f"tilecache full, serving {path} without storing", flush=True)
+                return
+            print("tilecache full, making room", flush=True)
+            try:
+                limiter.prune(force=True)
+            except Exception as exc:
+                print(f"tilecache prune failed: {exc}", flush=True)
 
 
 def looks_like_image(data, content_type):
@@ -158,10 +211,10 @@ def resolve_tile(lyrs, z, x, y, depth=0):
                 raise
             parent = resolve_tile(lyrs, z - 1, x // 2, y // 2, depth + 1)
             data = upscale_quadrant(parent, x, y)
-            write_atomic(cache_file("upscaled", lyrs, z, x, y), data)
+            store_tile(cache_file("upscaled", lyrs, z, x, y), data)
             print(f"filled {lyrs}/{z}/{x}/{y} from z{z - 1}", flush=True)
             return data
-        write_atomic(cache_file("native", lyrs, z, x, y), data)
+        store_tile(cache_file("native", lyrs, z, x, y), data)
         return data
 
 
@@ -228,6 +281,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     CACHE.mkdir(parents=True, exist_ok=True)
+    limiter.start()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"tileproxy listening on {PORT}", flush=True)
     server.serve_forever()

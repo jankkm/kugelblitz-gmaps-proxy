@@ -14,6 +14,16 @@ The proxy listens on [http://127.0.0.1:8080](http://127.0.0.1:8080). The demo pa
 
 Stop it with `docker compose down`.
 
+## Cache
+
+Tiles and MapProxy's own files are on host directories, not in the container disk. Google tiles are in `tilecache/`. Esri and Mapbox tiles are in `cache/`. MapProxy's generated config and logs are in `mapproxy-data/`. Each tile directory is kept under 8 GiB. Past that, the least recently used tiles are deleted until the directory is back to about 90%. Expired tiles go first. Upscaled Google tiles, which can be rebuilt from the cached parent, go before native tiles of a similar age.
+
+If the disk drops below 1 GiB free, those same jobs delete cached tiles until there is room again. A Google tile that still cannot be saved is served anyway.
+
+Set `TILE_CACHE_MAX_BYTES` and `MAPPROXY_CACHE_MAX_BYTES` in `.env` to change the caps (`20GiB`, `500MB`, or `0` for no cap). `CACHE_MIN_FREE` is the free-space floor (`0` turns that off).
+
+To put that data on another disk, set `DATA_DIR` in `.env` to the new location and move `tilecache/`, `cache/`, and `mapproxy-data/` there. Start the containers again after changing them.
+
 ## Use in Kugelblitz
 
 Add `my_google_layers.geojson` as file in Library. That adds:

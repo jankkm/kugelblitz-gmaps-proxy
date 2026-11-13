@@ -1,2 +1,7 @@
 .env
 tilecache/
+cache/
+mapproxy-data/
+
+__pycache__/
+*.py[cod]

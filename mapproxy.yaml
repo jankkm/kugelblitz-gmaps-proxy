@@ -51,14 +51,17 @@ caches:
   cache_google_satellite:
     grids: [GLOBAL_WEBMERCATOR]
     sources: [src_google_satellite]
+    disable_storage: true
 
   cache_google_hybrid:
     grids: [GLOBAL_WEBMERCATOR]
     sources: [src_google_hybrid]
+    disable_storage: true
 
   cache_google_roadmap:
     grids: [GLOBAL_WEBMERCATOR]
     sources: [src_google_roadmap]
+    disable_storage: true
 
   cache_esri_satellite:
     grids: [GLOBAL_WEBMERCATOR]
@@ -170,7 +173,11 @@ sources:
 
 globals:
   cache:
-    base_dir: './cache_data'
+    # The image rewrites this path to MAPPROXY_CACHE_DIR. Keep it on /cache_data,
+    # which is the host mount. A relative path would be stored under /mapproxy.
+    base_dir: '/cache_data'
+    lock_dir: '/cache_data/locks'
+    tile_lock_dir: '/cache_data/tile_locks'
   http:
     headers:
       User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
