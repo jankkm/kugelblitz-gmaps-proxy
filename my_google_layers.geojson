@@ -60,6 +60,16 @@
         "url": "http://127.0.0.1:8080/wmts/mapbox_hybrid/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
       },
       "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "bing-satellite",
+        "name": "Bing Satellite (MapProxy WMTS)",
+        "type": "wmts",
+        "url": "http://127.0.0.1:8080/wmts/bing_satellite/GLOBAL_WEBMERCATOR/{z}/{x}/{y}.png"
+      },
+      "geometry": null
     }
   ]
 }

@@ -4,7 +4,7 @@ services:
     srs: ['EPSG:4326', 'EPSG:3857', 'EPSG:900913', 'CRS:84']
     md:
       title: "MapProxy"
-      abstract: "Local MapProxy server providing Google, Esri, and Mapbox layers"
+      abstract: "Local MapProxy server providing Google, Esri, Mapbox, and Bing layers"
   wmts:
     restful: true
   tms:
@@ -16,7 +16,7 @@ services:
     md:
       identification:
         title: MapProxy
-        description: Local MapProxy server providing Google, Esri, and Mapbox layers
+        description: Local MapProxy server providing Google, Esri, Mapbox, and Bing layers
 
 layers:
   - name: google_satellite
@@ -54,6 +54,10 @@ layers:
   - name: mapbox_roadmap
     title: "Mapbox Roadmap"
     sources: [cache_mapbox_roadmap]
+
+  - name: bing_satellite
+    title: "Bing Satellite"
+    sources: [cache_bing_satellite]
 
 caches:
   cache_google_satellite:
@@ -94,6 +98,10 @@ caches:
   cache_mapbox_roadmap:
     grids: [GLOBAL_WEBMERCATOR]
     sources: [src_mapbox_roadmap]
+
+  cache_bing_satellite:
+    grids: [GLOBAL_WEBMERCATOR]
+    sources: [src_bing_satellite]
 
 sources:
   src_google_satellite:
@@ -176,6 +184,12 @@ sources:
   src_mapbox_roadmap:
     type: tile
     url: https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/%(z)s/%(x)s/%(y)s?access_token=${MAPBOX_ACCESS_TOKEN}
+    grid: GLOBAL_WEBMERCATOR
+    concurrent_requests: 8
+
+  src_bing_satellite:
+    type: tile
+    url: https://ecn.t0.tiles.virtualearth.net/tiles/a%(quadkey)s.jpeg?g=14215&n=z
     grid: GLOBAL_WEBMERCATOR
     concurrent_requests: 8
 
